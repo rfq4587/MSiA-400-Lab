@@ -1,0 +1,222 @@
+---
+title: "MSiA 400 Lab 1"
+author: "Ruixiang Fan"
+date: "10/30/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 1
+# a.)
+
+```{r}
+
+# Read markov100.txt and create Transition Matrix
+markov <- read.table("markov100.txt")
+P <- as.matrix(markov)
+
+```
+
+```{r}
+
+# Create the initial vector
+a1 <- c(1)
+i <- 1
+b1 <- 0
+while (i < 100) {
+  a1 <- c(a1, b1)
+  i = i + 1
+}
+
+```
+
+```{r}
+
+# Calculate the prob distribution after 10 steps
+library(expm)
+prob10 <- a1 %*% (P %^% 10)
+
+# Index the fifth element of the first row representing probability of being in state 5 after 10 steps
+prob10[1,5]
+
+```
+
+#### The probability of being in State 5 after 10 transitions is 0.045091 given we are currently in State 1.
+
+# b.)
+
+```{r}
+
+# Create the initial vector
+a2 <- c(1/3, 1/3, 1/3)
+i <- 1
+b2 <- 0
+while (i < 98) {
+  a2 <- c(a2, b2)
+  i = i + 1
+}
+
+```
+
+```{r}
+
+# Calculate the prob distribution after 10 steps
+library(expm)
+prob10 <- a1 %*% (P %^% 10)
+
+# Index the 10th element of the first row representing probability of being in state 10 after 10 steps
+prob10[1,10]
+
+```
+
+#### The probability of being in State 5 after 10 transitions is 0.08126983 given we are currently at one of States 1, 2, and 3 with equal probabilities.
+
+
+# c.)
+
+```{r}
+
+# Create the vector to replace the last row of t(P) - I matrix
+i <- 1
+a3 <- c(1)
+b3 <- 1
+while (i < 100) {
+  a3 <- c(a3, b3)
+  i = i + 1
+}
+
+# Create the rhs vector
+j <- 1
+a_rhs <- c(0)
+b_rhs <- 0
+while (j < 99) {
+  a_rhs <- c(a_rhs, b_rhs)
+  j = j + 1
+}
+a_rhs <- c(a_rhs, 1)
+
+```
+
+```{r}
+
+# Calculate Pi Vector
+Q <- t(P) - diag(100)
+Q[100,] <- a3
+rhs <- a_rhs
+Pi <- solve(Q) %*% rhs
+
+# Index the first element of the first column representing the steady state probability of being in State 1
+Pi[1,1]
+
+```
+
+#### The steady state probability of being in State 1 is 0.01256589.
+
+# d.)
+
+```{r}
+
+# Create the vector of 1's
+a4 <- c(1)
+b4 <- 1
+i <- 1
+while (i < 99) {
+  a4 <- c(a4, b4)
+  i = i + 1
+}
+
+```
+
+
+```{r}
+
+# Calculate the vector containing the mean first passage time to State 100 from State 1,2,...,99
+B <- P[-100,-100]
+Q4 <- diag(99) - B
+e <- a4
+m <- solve(Q4) %*% e
+
+# Index the first element representing the mean first passage time from State 1 to State 100
+m[1,1]
+
+```
+
+#### The mean first passage time from State 1 to State 100 is 254.9395.
+
+# Problem 2
+# a.)
+
+```{r}
+
+# Read markov100.txt and create Matrix
+web <- as.matrix(read.table("webtraffic.txt", header = TRUE))
+
+# Calculate the sum of visits for each path
+webtotal <- colSums(web)
+
+# Construct and Display matrx Traffic
+Traffic <- matrix(webtotal, ncol = 9, byrow = TRUE)
+Traffic
+
+```
+
+# b.)
+
+```{r}
+
+# Divide total traffic by 1000 (the number of visitors) to get transition probability
+Traffic[9,1] <- 1000
+P <- Traffic/1000
+P
+
+```
+
+# c.)
+
+```{r}
+
+# Calculate and display Pi Vector
+Q <- t(P)-diag(9)
+Q[9,] <- c(1,1,1,1,1,1,1,1,1)
+rhs <- c(0,0,0,0,0,0,0,0,1)
+Pi <- solve(Q) %*% rhs
+Pi
+
+```
+
+# d.)
+
+```{r}
+
+StayTime <- c(0.1,2,3,5,5,3,3,2,0)
+Average_Time <- StayTime %*% Pi
+Average_Time
+
+```
+
+#### The average time a visitor spend on the website until she leaves is about 1.86 minutes.
+
+# e.)
+
+```{r}
+
+# Modify the matrix Traffic to indicate total traffic changes after adding the links
+Traffic[2,6] <- Traffic[2,3]*0.3
+Traffic[2,3] <- Traffic[2,3]*0.7
+Traffic[2,7] <- Traffic[2,4]*0.2
+Traffic[2,4] <- Traffic[2,4]*0.8
+P <- Traffic/1000
+
+# Calculate the Pi2 vector using the modified matrix Traffic
+Q <- t(P)-diag(9)
+Q[9,] <- c(1,1,1,1,1,1,1,1,1)
+rhs <- c(0,0,0,0,0,0,0,0,1)
+Pi2 <- solve(Q) %*% rhs
+Pi2
+
+```
+
+#### Pi[3] = 0.1594 drops to Pi2[3] = 0.1511, Pi[4] = 0.1300 drops to Pi2[4] = 0.1108 after adding the links. Therefore, the link helped balancing the traffic. 
